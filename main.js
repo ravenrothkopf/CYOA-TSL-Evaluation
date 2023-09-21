@@ -24,14 +24,24 @@ async function updateSummary(nextPassage) {
 }
 
 async function getChoices(nextPassage) {
-  let choicesPrompt = [
-    { role: "system", content: "You are writing a choose your own adventure book. Given the passage, give a single next concrete action for the player, such as walking to the left. Refer the the reader as `You` and use the present active tense. Do not prefix options with numbers. Do not use the word `can`. Do not use the word `or`" }, //maybe ask for different kinds of options here - as mediated by TSL?
+  let choice1Prompt = [
+    { role: "system", content: "You are writing a choose your own adventure book. Given the passage, give a single next concrete action for the player, such as walking to the left. Refer to the reader as `You` and use the present active tense. Do not prefix options with numbers. Do not use the word `can`. Do not use the word `or`" }, //maybe ask for different kinds of options here - as mediated by TSL?
     { role: "user", content: nextPassage },
   ];
-  openAIFetchAPI(choicesPrompt, 2, ".").then(userChoices => {
-    document.getElementById('choice1').innerHTML = userChoices[0].message.content + ".";
-    document.getElementById('choice2').innerHTML = userChoices[1].message.content + ".";
+  let choice1;
+  await openAIFetchAPI(choice1Prompt, 1, ".").then(userChoice => {
+    document.getElementById('choice1').innerHTML = userChoice[0].message.content + ".";
+    choice1 = userChoice[0].message.content + ".";
   })
+
+  let choice2Prompt = [
+    { role: "system", content: "You are writing a choose your own adventure book. Given the passage, give a single next concrete action for the player, such as walking to the left. Refer to the reader as `You` and use the present active tense. Do not prefix options with numbers. Do not use the word `can`. Do not use the word `or`. The choice must be different from: `" + choice1 + "`."}, //maybe ask for different kinds of options here - as mediated by TSL?
+    { role: "user", content: nextPassage },
+  ];
+
+  await openAIFetchAPI(choice2Prompt, 1, ".").then(userChoice => {
+    document.getElementById('choice2').innerHTML = userChoice[0].message.content + ".";
+  });
 }
 
 async function getNextPassageAndChoices() {
@@ -46,6 +56,7 @@ async function getNextPassageAndChoices() {
   if (firstRound(currentText)) {
     passagePrompt[0].content = passagePrompt[0].content + " Compose the introductory passage of the story which describes the character and the setting."
   }
+  
   else if (goToMarket(currentText)) {
     passagePrompt[0].content = passagePrompt[0].content + " Compose a passage where the reader visits a market to buy supplies."
   }
@@ -54,6 +65,7 @@ async function getNextPassageAndChoices() {
   openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
     let nextPassage = newText[0].message.content;
     document.getElementById('adventureText').innerHTML = nextPassage;
+    document.getElementById('log').innerHTML += (this.innerHTML + "<br><br>" + nextPassage + "<br><br>");
     updateSummary(nextPassage).then(summary => {
       storySummary = summary;
       getChoices(nextPassage)
@@ -65,7 +77,7 @@ async function getNextPassageAndChoices() {
 async function openAIFetchAPI(promptMessages, numChoices, stopChars) {
   console.log("Calling GPT3")
   const url = "https://api.openai.com/v1/chat/completions";
-  const YOUR_TOKEN = "" //add your own openai api key
+  const YOUR_TOKEN = "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" //add your own openai api key
   const bearer = 'Bearer ' + YOUR_TOKEN
   const data = await fetch(url, {
     method: 'POST',
