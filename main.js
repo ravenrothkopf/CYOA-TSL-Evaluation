@@ -1,9 +1,14 @@
+document.getElementById('submitAPIKey').addEventListener("click", recordKey);
 document.getElementById('choice1').addEventListener("click", getNextPassageAndChoices);
 document.getElementById('choice2').addEventListener("click", getNextPassageAndChoices);
+document.getElementById('checkInMarket').addEventListener("click", checkInMarket);
+
 
 passages = []
 storySummary = ""
 const numPassagesToConsider = 3;
+
+var apiKey = "";
 
 function firstRound(currentText) {
   return currentText == "Once upon a time..."
@@ -11,6 +16,11 @@ function firstRound(currentText) {
 
 function goToMarket(currentText) {
   return true
+}
+
+function recordKey() {
+  // Get the value entered in the text input
+  apiKey = document.getElementById("input_APIKey").value;
 }
 
 //this doesnt work yet
@@ -62,6 +72,7 @@ async function getNextPassageAndChoices() {
   }
   console.log(passagePrompt[0].content)
 
+
   openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
     let nextPassage = newText[0].message.content;
     document.getElementById('adventureText').innerHTML = nextPassage;
@@ -74,10 +85,31 @@ async function getNextPassageAndChoices() {
   });
 }
 
+
+async function checkInMarket() {
+  const currentText = document.getElementById('adventureText').innerHTML.trim();
+  let passagePrompt = [
+    { role: "system", content: "Read this passage in an adventure story. Is the main character in a market or not? Respond '0' if it is false, or '1' if it is true." },
+    { role: "user", content: currentText},
+  ];
+
+  console.log("[checkInMarket] "+ passagePrompt[0].content)
+
+  openAIFetchAPI(passagePrompt, 1, ".").then(newText => {
+    let response = newText[0].message.content;
+    let inMarket = response.includes("1");
+
+    // update the text
+    document.getElementById("inMarketResult").innerHTML = "In Market? "+inMarket;
+  });
+
+
+}
+
 async function openAIFetchAPI(promptMessages, numChoices, stopChars) {
   console.log("Calling GPT3")
   const url = "https://api.openai.com/v1/chat/completions";
-  const YOUR_TOKEN = "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" //add your own openai api key
+  const YOUR_TOKEN = apiKey //add your own openai api key
   const bearer = 'Bearer ' + YOUR_TOKEN
   const data = await fetch(url, {
     method: 'POST',
