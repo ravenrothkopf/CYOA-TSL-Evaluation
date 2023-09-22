@@ -14,9 +14,17 @@ function firstRound(currentText) {
   return currentText == "Once upon a time..."
 }
 
-function goToMarket(currentText) {
+function goToMarket() {
   return true
 }
+
+// function goToCave() {
+//   return true
+// }
+
+// function endGame() {
+//   return true
+// }
 
 function recordKey() {
   // Get the value entered in the text input
@@ -70,8 +78,10 @@ async function getNextPassageAndChoices() {
   else if (goToMarket(currentText)) {
     passagePrompt[0].content = passagePrompt[0].content + " Compose a passage where the reader visits a market to buy supplies."
   }
+  else if (goToCave(currentText)) {
+    passagePrompt[0].content = passagePrompt[0].content + " Compose a passage where the reader explores a cave on their journey."
+  }
   console.log(passagePrompt[0].content)
-
 
   openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
     let nextPassage = newText[0].message.content;
@@ -83,6 +93,14 @@ async function getNextPassageAndChoices() {
     });
 
   });
+  if (endGame(currentText)) {
+    document.getElementById('adventureText').innerHTML += "<br><br> The End";
+    document.getElementById('choice1').innerHTML = "";
+    document.getElementById('choice2').innerHTML = "";
+    document.getElementById('log').innerHTML = "";
+    passages = [];
+    storySummary = "";
+  }
 }
 
 
@@ -102,8 +120,24 @@ async function checkInMarket() {
     // update the text
     document.getElementById("inMarketResult").innerHTML = "In Market? "+inMarket;
   });
+}
 
+async function checkInCave() {
+  const currentText = document.getElementById('adventureText').innerHTML.trim();
+  let passagePrompt = [
+    { role: "system", content: "Read this passage in an adventure story. Is the main character in a cave or not? Respond '0' if it is false, or '1' if it is true." },
+    { role: "user", content: currentText},
+  ];
 
+  console.log("[checkInCave] "+ passagePrompt[0].content)
+
+  openAIFetchAPI(passagePrompt, 1, ".").then(newText => {
+    let response = newText[0].message.content;
+    let inCave = response.includes("1");
+
+    // update the text
+    document.getElementById("inCaveResult").innerHTML = "In Cave? "+inCave;
+  });
 }
 
 async function openAIFetchAPI(promptMessages, numChoices, stopChars) {
