@@ -6,39 +6,18 @@ document.getElementById('checkInMarket').addEventListener("click", checkInMarket
 
 passages = []
 storySummary = ""
+const currentText = document.getElementById('adventureText').innerHTML.trim();
 const numPassagesToConsider = 3;
 
 var apiKey = "";
-
-function firstRound(currentText) {
-  return currentText == "Once upon a time..."
-}
-
-function goToMarket() {
-  return true
-}
-
-// function goToCave() {
-//   return true
-// }
-
-// function endGame() {
-//   return true
-// }
 
 function recordKey() {
   // Get the value entered in the text input
   apiKey = document.getElementById("input_APIKey").value;
 }
 
-//this doesnt work yet
-async function updateSummary(nextPassage) {
-  passages.push(nextPassage);
-  let summaryPrompt = [
-    { role: "system", content: "You are writing a book and need to recall important points of the story so far. Summarize the provided passages into a list of key facts about the story so far." }, //maybe ask for different kinds of options here - as mediated by TSL?
-    { role: "user", content: passages.slice(-numPassagesToConsider).join(' ') },
-  ];
-  return openAIFetchAPI(summaryPrompt, 1, "");
+function firstRound(currentText) {
+  return currentText == "Once upon a time..."
 }
 
 async function getChoices(nextPassage) {
@@ -63,7 +42,6 @@ async function getChoices(nextPassage) {
 }
 
 async function getNextPassageAndChoices() {
-  const currentText = document.getElementById('adventureText').innerHTML.trim();
   document.getElementById('adventureText').innerHTML = "<div id=\"loading-bar-spinner\" class=\"spinner\"><div class=\"spinner-icon\"></div></div>";
   let passagePrompt = [
     { role: "system", content: "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense." },
@@ -71,18 +49,16 @@ async function getNextPassageAndChoices() {
     { role: "user", content: this.innerHTML.replace("You", "I") },
   ];
 
-  if (firstRound(currentText)) {
-    passagePrompt[0].content = passagePrompt[0].content + " Compose the introductory passage of the story which describes the character and the setting."
-  }
-  
-  else if (goToMarket(currentText)) {
-    passagePrompt[0].content = passagePrompt[0].content + " Compose a passage where the reader visits a market to buy supplies."
-  }
-  else if (goToCave(currentText)) {
-    passagePrompt[0].content = passagePrompt[0].content + " Compose a passage where the reader explores a cave on their journey."
-  }
-  console.log(passagePrompt[0].content)
+  let passage = passagePrompt[0].content
 
+  if (firstRound(currentText)) {
+    passage = passage + " Compose the introductory passage of the story which describes the character and the setting."
+  }
+  //this will eventually be mediated by TSL, insert automata here!
+  passage = passage + goToMarket();
+
+  //update passage prompt at the end
+  passagePrompt[0].content = passage;
   openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
     let nextPassage = newText[0].message.content;
     document.getElementById('adventureText').innerHTML = nextPassage;
@@ -93,7 +69,7 @@ async function getNextPassageAndChoices() {
     });
 
   });
-  if (endGame(currentText)) {
+  if (isEnd(currentText)) {
     document.getElementById('adventureText').innerHTML += "<br><br> The End";
     document.getElementById('choice1').innerHTML = "";
     document.getElementById('choice2').innerHTML = "";
@@ -101,43 +77,6 @@ async function getNextPassageAndChoices() {
     passages = [];
     storySummary = "";
   }
-}
-
-
-async function checkInMarket() {
-  const currentText = document.getElementById('adventureText').innerHTML.trim();
-  let passagePrompt = [
-    { role: "system", content: "Read this passage in an adventure story. Is the main character in a market or not? Respond '0' if it is false, or '1' if it is true." },
-    { role: "user", content: currentText},
-  ];
-
-  console.log("[checkInMarket] "+ passagePrompt[0].content)
-
-  openAIFetchAPI(passagePrompt, 1, ".").then(newText => {
-    let response = newText[0].message.content;
-    let inMarket = response.includes("1");
-
-    // update the text
-    document.getElementById("inMarketResult").innerHTML = "In Market? "+inMarket;
-  });
-}
-
-async function checkInCave() {
-  const currentText = document.getElementById('adventureText').innerHTML.trim();
-  let passagePrompt = [
-    { role: "system", content: "Read this passage in an adventure story. Is the main character in a cave or not? Respond '0' if it is false, or '1' if it is true." },
-    { role: "user", content: currentText},
-  ];
-
-  console.log("[checkInCave] "+ passagePrompt[0].content)
-
-  openAIFetchAPI(passagePrompt, 1, ".").then(newText => {
-    let response = newText[0].message.content;
-    let inCave = response.includes("1");
-
-    // update the text
-    document.getElementById("inCaveResult").innerHTML = "In Cave? "+inCave;
-  });
 }
 
 async function openAIFetchAPI(promptMessages, numChoices, stopChars) {
