@@ -1,0 +1,28 @@
+initially assume{
+    ! inCave passage;
+    ! inMarket passage;
+    ! inTown passage;    
+}
+
+always assume {
+//we wont hallucinate a cave, but we might accidentally end up in town or at a market
+    [passage <- toCave passage] <-> X inCave passage;
+    [passage <- toMarket passage] -> X inMarket passage;
+    [passage <- toTown passage] -> X inTown passage;
+}
+
+guarantee {
+//you cant go to the cave until you have been to town and the market once
+    (! (inCave passage)) W (inMarket passage);
+    (! (inCave passage)) W (inTown passage);
+
+}
+
+always guarantee {
+//eventually, always visit all the places, and keep summary up to date
+    [summary <- updateSummary passage];
+    F inCave passage;
+    F inMarket passage;
+    F inTown passage;
+}
+
