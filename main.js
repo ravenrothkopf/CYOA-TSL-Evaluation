@@ -2,7 +2,9 @@ document.getElementById('submitAPIKey').addEventListener("click", recordKey);
 document.getElementById('choice1').addEventListener("click", getNextPassageAndChoices);
 document.getElementById('choice2').addEventListener("click", getNextPassageAndChoices);
 document.getElementById('checkInMarket').addEventListener("click", checkInMarket);
-
+document.getElementById('checkInCave').addEventListener("click", checkInCave);
+document.getElementById('checkInTown').addEventListener("click", checkInTown);
+document.getElementById('restart').addEventListener("click", restart);
 
 passages = []
 storySummary = ""
@@ -18,6 +20,16 @@ function recordKey() {
 
 function firstRound(currentText) {
   return currentText == "Once upon a time..."
+}
+
+function restart() {
+  document.getElementById('adventureText').innerHTML += "<br><br> The End";
+  document.getElementById('choice1').innerHTML = "";
+  document.getElementById('choice2').innerHTML = "";
+  document.getElementById('log').innerHTML = "";
+  passages = [];
+  storySummary = "";
+  currentState = 0;
 }
 
 async function getChoices(nextPassage) {
@@ -54,8 +66,11 @@ async function getNextPassageAndChoices() {
   if (firstRound(currentText)) {
     passage = passage + " Compose the introductory passage of the story which describes the character and the setting."
   }
-  //this will eventually be mediated by TSL, insert automata here!
-  passage = passage + goToMarket();
+  
+  //TSL automaton
+  passage = passage + updateState(passage);
+  console.log("Passage: " + passage);
+  console.log("Summary: " + storySummary);
 
   //update passage prompt at the end
   passagePrompt[0].content = passage;
@@ -63,20 +78,8 @@ async function getNextPassageAndChoices() {
     let nextPassage = newText[0].message.content;
     document.getElementById('adventureText').innerHTML = nextPassage;
     document.getElementById('log').innerHTML += (this.innerHTML + "<br><br>" + nextPassage + "<br><br>");
-    updateSummary(nextPassage).then(summary => {
-      storySummary = summary;
-      getChoices(nextPassage)
-    });
-
+    getChoices(nextPassage)
   });
-  if (isEnd(currentText)) {
-    document.getElementById('adventureText').innerHTML += "<br><br> The End";
-    document.getElementById('choice1').innerHTML = "";
-    document.getElementById('choice2').innerHTML = "";
-    document.getElementById('log').innerHTML = "";
-    passages = [];
-    storySummary = "";
-  }
 }
 
 async function openAIFetchAPI(promptMessages, numChoices, stopChars) {

@@ -1,19 +1,19 @@
 //TSL functions of arity 0
-function goToMarket() {
+function toMarket() {
   return " Compose a passage where the reader visits a market to buy supplies."
 }
 
-function goToCave() {
+function toCave() {
   return " Compose a passage where the reader explores a cave on their journey."
 }
 
-function endGame() {
-  return " Compose a passage that ends the current story that the player is following."
+function toTown() {
+  return " Compose a passage where the reader explores a cave on their journey."
 }
 
 //this doesnt work yet
-async function updateSummary(nextPassage) {
-  passages.push(nextPassage);
+async function updateSummary(previousSummary) {
+  passages.push(previousSummary);
   let summaryPrompt = [
     { role: "system", content: "You are writing a book and need to recall important points of the story so far. Summarize the provided passages into a list of key facts about the story so far." }, //maybe ask for different kinds of options here - as mediated by TSL?
     { role: "user", content: passages.slice(-numPassagesToConsider).join(' ') },
@@ -22,18 +22,18 @@ async function updateSummary(nextPassage) {
 }
 
 //TSL predicates
-async function inMarket(currentText) {
+async function inMarket(summary) {
     let inMarket = false;
     let passagePrompt = [
       { role: "system", content: "Read this passage in an adventure story. Is the main character in a market or not? Respond '0' if it is false, or '1' if it is true." },
-      { role: "user", content: currentText},
+      { role: "user", content: summary},
     ];
   
     console.log("[checkInMarket] "+ passagePrompt[0].content)
   
     openAIFetchAPI(passagePrompt, 1, ".").then(newText => {
       let response = newText[0].message.content;
-      let inMarket = response.includes("1");
+      inMarket = response.includes("1");
   
       // update the text
       document.getElementById("inMarketResult").innerHTML = "In Market? "+inMarket;
@@ -41,18 +41,18 @@ async function inMarket(currentText) {
     return inMarket;
   }
   
-  async function inCave(currentText) {
+  async function inCave(summary) {
     let inCave = false;
     let passagePrompt = [
       { role: "system", content: "Read this passage in an adventure story. Is the main character in a cave or not? Respond '0' if it is false, or '1' if it is true." },
-      { role: "user", content: currentText},
+      { role: "user", content: summary},
     ];
   
     console.log("[checkInCave] "+ passagePrompt[0].content)
   
     openAIFetchAPI(passagePrompt, 1, ".").then(newText => {
       let response = newText[0].message.content;
-      let inCave = response.includes("1");
+      inCave = response.includes("1");
   
       // update the text
       document.getElementById("inCaveResult").innerHTML = "In Cave? "+inCave;
@@ -60,21 +60,21 @@ async function inMarket(currentText) {
     return inCave;
   }
 
-  async function isEnd(currentText) {
-    let isEnd = false;
+  async function inTown(summary) {
+    let inTown = false;
     let passagePrompt = [
-      { role: "system", content: "Read this passage in an adventure story. Is this the end of a story? Respond '0' if it is false, or '1' if it is true." },
-      { role: "user", content: currentText},
+      { role: "system", content: "Read this passage in an adventure story. Is the player in a town? Respond '0' if it is false, or '1' if it is true." },
+      { role: "user", content: summary},
     ];
   
-    console.log("[checkEnd] "+ passagePrompt[0].content)
+    console.log("[checkTown] "+ passagePrompt[0].content)
   
     openAIFetchAPI(passagePrompt, 1, ".").then(newText => {
       let response = newText[0].message.content;
-      isEnd = response.includes("1");
+      inTown = response.includes("1");
   
       // update the text
-      document.getElementById("isEndResult").innerHTML = "End game? "+isEnd;
+      document.getElementById("inTownResult").innerHTML = "In Town? "+inTown;
     });
-    return isEnd;
+    return inTown;
   }
