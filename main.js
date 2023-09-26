@@ -37,8 +37,8 @@ function firstRound(currentText) {
 }
 
 function restart() {
-  document.getElementById('adventureText').innerHTML += "<br><br> The End";
-  document.getElementById('choice1').innerHTML = "";
+  document.getElementById('adventureText').innerHTML = "Once upon a time...";
+  document.getElementById('choice1').innerHTML = "Start your adventure!";
   document.getElementById('choice2').innerHTML = "";
   document.getElementById('log').innerHTML = "";
   document.getElementById('caveCheck').checked = false;
@@ -73,7 +73,7 @@ async function getChoices(nextPassage) {
   })
 
   let choice2Prompt = [
-    { role: "system", content: "You are writing a choose your own adventure book. Given the passage, give a single next concrete action for the player, such as walking to the left. Refer to the reader as `You` and use the present active tense. Do not prefix options with numbers. Do not use the word `can`. Do not use the word `or`. The choice must be different from: `" + choice1 + "`."}, //maybe ask for different kinds of options here - as mediated by TSL?
+    { role: "system", content: "You are writing a choose your own adventure book. Given the passage, give a single next concrete action for the player, such as walking to the left. Refer to the reader as `You` and use the present active tense. Do not prefix options with numbers. Do not use the word `can`. Do not use the word `or`. The choice must be a different concrete action from: `" + choice1 + "`."}, //maybe ask for different kinds of options here - as mediated by TSL?
     { role: "user", content: nextPassage },
   ];
 
@@ -94,7 +94,7 @@ async function getNextPassageAndChoices() {
   // dont enter the automaton until the first round is over
   if (firstRound(currentText)) {
     console.log("first round")
-    passagePrompt[0].content += " Compose the introductory passage of the story which describes the character and the setting."
+    passagePrompt[0].content += " Compose the introductory passage of the story which describes the character and the setting. The initial setting can not be in a market, town, or cave."
     openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
       passage = newText[0].message.content;
       document.getElementById('adventureText').innerHTML = passage;

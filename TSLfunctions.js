@@ -60,7 +60,7 @@ async function town(summary, choice) {
 
 async function getRandomPassage(summary, choice) {
   console.log("getting random passage...");
-  summary += " Compose a passage where the reader continues their journey.";
+  summary += " Compose a passage where the reader continues their journey. They can not encounter a cave.";
   let passagePrompt = [
     { role: "system", content: "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense." },
     { role: "assistant", content: storySummary + " " + currentText },
