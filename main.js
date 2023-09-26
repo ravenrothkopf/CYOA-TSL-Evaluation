@@ -7,17 +7,14 @@ document.getElementById('restart').addEventListener("click", restart);
 let passages = []
 // global variable for the current passage of each time step
 let passage;
+let passageTarget = "toMarket";
 let currentText;
 storySummary = ""
 const numPassagesToConsider = 3;
 
 // compute all predicates ahead of time
-async function getPreds(choice){
+async function getPreds(choice) {
   let preds = await Promise.all([
-    cave(storySummary, choice),
-    market(storySummary, choice),
-    town(storySummary, choice),
-    getRandomPassage(storySummary, choice),
     checkInCave(storySummary),
     checkInMarket(storySummary),
     checkInTown(storySummary),
@@ -50,11 +47,11 @@ function restart() {
   storySummary = "";
   currentState = 0;
   passage = "";
+  passageTarget = "toMarket";
 
-  toCave = "";
-  toMarket = "";
-  toTown = "";
-  randomPassage = "";
+  toCave = "toCave";
+  toMarket = "toMarket";
+  toTown = "toTown";
 
   inCave = undefined;
   inMarket = undefined;
@@ -73,7 +70,7 @@ async function getChoices(nextPassage) {
   })
 
   let choice2Prompt = [
-    { role: "system", content: "You are writing a choose your own adventure book. Given the passage, give a single next concrete action for the player, such as walking to the left. Refer to the reader as `You` and use the present active tense. Do not prefix options with numbers. Do not use the word `can`. Do not use the word `or`. The choice must be a different concrete action from: `" + choice1 + "`."}, //maybe ask for different kinds of options here - as mediated by TSL?
+    { role: "system", content: "You are writing a choose your own adventure book. Given the passage, give a single next concrete action for the player, such as walking to the left. Refer to the reader as `You` and use the present active tense. Do not prefix options with numbers. Do not use the word `can`. Do not use the word `or`. The choice must be a different concrete action from: `" + choice1 + "`." }, //maybe ask for different kinds of options here - as mediated by TSL?
     { role: "user", content: nextPassage },
   ];
 
@@ -86,7 +83,7 @@ async function getNextPassageAndChoices() {
   currentText = document.getElementById('adventureText').innerHTML.trim();
   document.getElementById('adventureText').innerHTML = "<div id=\"loading-bar-spinner\" class=\"spinner\"><div class=\"spinner-icon\"></div></div>";
   let passagePrompt = [
-    { role: "system", content: "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense." },
+    { role: "system", content: "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story of at most 100 words. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense." },
     { role: "assistant", content: storySummary + " " + currentText },
     { role: "user", content: this.innerHTML.replace("You", "I") },
   ];
@@ -94,7 +91,8 @@ async function getNextPassageAndChoices() {
   // dont enter the automaton until the first round is over
   if (firstRound(currentText)) {
     console.log("first round")
-    passagePrompt[0].content += " Compose the introductory passage of the story which describes the character and the setting. The initial setting can not be in a market, town, or cave."
+    passagePrompt[0].content += " Compose the introductory passage of the story which describes the character and the setting. "
+    //"The initial setting can not be in a market, town, or cave."
     openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
       passage = newText[0].message.content;
       document.getElementById('adventureText').innerHTML = passage;
@@ -108,19 +106,11 @@ async function getNextPassageAndChoices() {
   }
   else {
     // compute all predicates ahead of time for the sake of efficiency and money
-    getPreds(this.innerHTML.replace("You", "I")).then(preds => {
-      toCave = preds[0];
-      toMarket = preds[1];
-      toTown = preds[2];
-      randomPassage = preds[3];
-      inCave = preds[4];
-      inMarket = preds[5];
-      inTown = preds[6];
+    getPreds(this.innerHTML.replace("You", "I")).then(async preds => {
+      inCave = preds[0];
+      inMarket = preds[1];
+      inTown = preds[2];
 
-      console.log("toCave: " + toCave);
-      console.log("toMarket: " + toMarket);
-      console.log("toTown: " + toTown);
-      console.log("random passage: " + randomPassage)
       console.log("inCave: " + inCave);
       console.log("inMarket: " + inMarket);
       console.log("inTown: " + inTown);
@@ -136,11 +126,23 @@ async function getNextPassageAndChoices() {
         document.getElementById("townCheck").checked = true;
       }
 
-      //in case the automaton transition doesn't update the passage, just continue the story
-      passage = randomPassage;
+      let choice = this.innerHTML.replace("You", "I")
 
       // TSL automaton
       updateState();
+      console.log(passageTarget)
+      if (passageTarget == "toCave") {
+        console.log("TSL says go to cave")
+        passage = await cave(storySummary, choice)
+      }
+      else if (passageTarget == "toMarket") {
+        console.log("TSL says go to market")
+        passage = await market(storySummary, choice)
+      }
+      else if (passageTarget == "toTown") {
+        console.log("TSL says go to town")
+        passage = await town(storySummary, choice)
+      }
 
       // update story summary and choices
       document.getElementById('adventureText').innerHTML = passage;
@@ -148,7 +150,7 @@ async function getNextPassageAndChoices() {
       updateSummary(passage).then(summary => {
         storySummary = summary;
         console.log("Current state: " + currentState);
-        console.log("Chosen passage: " + passage);
+        console.log("Generated passage: " + passage);
         console.log("Updated summary: " + storySummary);
         getChoices(passage)
       });
