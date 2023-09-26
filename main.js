@@ -1,15 +1,29 @@
 document.getElementById('submitAPIKey').addEventListener("click", recordKey);
 document.getElementById('choice1').addEventListener("click", getNextPassageAndChoices);
 document.getElementById('choice2').addEventListener("click", getNextPassageAndChoices);
-document.getElementById('checkInMarket').addEventListener("click", checkInMarket);
-document.getElementById('checkInCave').addEventListener("click", checkInCave);
-document.getElementById('checkInTown').addEventListener("click", checkInTown);
 document.getElementById('restart').addEventListener("click", restart);
 
-passages = []
+// list of all passages for summarization
+let passages = []
+// global variable for the current passage of each time step
+let passage;
+let currentText;
 storySummary = ""
-const currentText = document.getElementById('adventureText').innerHTML.trim();
 const numPassagesToConsider = 3;
+
+// compute all predicates ahead of time
+async function getPreds(choice){
+  let preds = await Promise.all([
+    cave(storySummary, choice),
+    market(storySummary, choice),
+    town(storySummary, choice),
+    getRandomPassage(storySummary, choice),
+    checkInCave(storySummary),
+    checkInMarket(storySummary),
+    checkInTown(storySummary),
+  ]);
+  return preds;
+}
 
 var apiKey = "";
 
@@ -27,9 +41,24 @@ function restart() {
   document.getElementById('choice1').innerHTML = "";
   document.getElementById('choice2').innerHTML = "";
   document.getElementById('log').innerHTML = "";
+  document.getElementById('caveCheck').checked = false;
+  document.getElementById('marketCheck').checked = false;
+  document.getElementById('townCheck').checked = false;
+
+  currentText = "";
   passages = [];
   storySummary = "";
   currentState = 0;
+  passage = "";
+
+  toCave = "";
+  toMarket = "";
+  toTown = "";
+  randomPassage = "";
+
+  inCave = undefined;
+  inMarket = undefined;
+  inTown = undefined;
 }
 
 async function getChoices(nextPassage) {
@@ -54,6 +83,7 @@ async function getChoices(nextPassage) {
 }
 
 async function getNextPassageAndChoices() {
+  currentText = document.getElementById('adventureText').innerHTML.trim();
   document.getElementById('adventureText').innerHTML = "<div id=\"loading-bar-spinner\" class=\"spinner\"><div class=\"spinner-icon\"></div></div>";
   let passagePrompt = [
     { role: "system", content: "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense." },
@@ -61,25 +91,69 @@ async function getNextPassageAndChoices() {
     { role: "user", content: this.innerHTML.replace("You", "I") },
   ];
 
-  let passage = passagePrompt[0].content
-
+  // dont enter the automaton until the first round is over
   if (firstRound(currentText)) {
-    passage = passage + " Compose the introductory passage of the story which describes the character and the setting."
+    console.log("first round")
+    passagePrompt[0].content += " Compose the introductory passage of the story which describes the character and the setting."
+    openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
+      passage = newText[0].message.content;
+      document.getElementById('adventureText').innerHTML = passage;
+      console.log("next passage: " + currentText)
+      document.getElementById('log').innerHTML += (this.innerHTML + "<br><br>" + passage + "<br><br>");
+      updateSummary(passage).then(summary => {
+        storySummary = summary;
+        getChoices(passage)
+      });
+    });
   }
-  
-  //TSL automaton
-  passage = passage + updateState(passage);
-  console.log("Passage: " + passage);
-  console.log("Summary: " + storySummary);
+  else {
+    // compute all predicates ahead of time for the sake of efficiency and money
+    getPreds(this.innerHTML.replace("You", "I")).then(preds => {
+      toCave = preds[0];
+      toMarket = preds[1];
+      toTown = preds[2];
+      randomPassage = preds[3];
+      inCave = preds[4];
+      inMarket = preds[5];
+      inTown = preds[6];
 
-  //update passage prompt at the end
-  passagePrompt[0].content = passage;
-  openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
-    let nextPassage = newText[0].message.content;
-    document.getElementById('adventureText').innerHTML = nextPassage;
-    document.getElementById('log').innerHTML += (this.innerHTML + "<br><br>" + nextPassage + "<br><br>");
-    getChoices(nextPassage)
-  });
+      console.log("toCave: " + toCave);
+      console.log("toMarket: " + toMarket);
+      console.log("toTown: " + toTown);
+      console.log("random passage: " + randomPassage)
+      console.log("inCave: " + inCave);
+      console.log("inMarket: " + inMarket);
+      console.log("inTown: " + inTown);
+
+      // keep track if market and town were visited before cave
+      if (inCave) {
+        document.getElementById("caveCheck").checked = true;
+      }
+      if (inMarket) {
+        document.getElementById("marketCheck").checked = true;
+      }
+      if (inTown) {
+        document.getElementById("townCheck").checked = true;
+      }
+
+      //in case the automaton transition doesn't update the passage, just continue the story
+      passage = randomPassage;
+
+      // TSL automaton
+      updateState();
+
+      // update story summary and choices
+      document.getElementById('adventureText').innerHTML = passage;
+      document.getElementById('log').innerHTML += (this.innerHTML + "<br><br>" + passage + "<br><br>");
+      updateSummary(passage).then(summary => {
+        storySummary = summary;
+        console.log("Current state: " + currentState);
+        console.log("Chosen passage: " + passage);
+        console.log("Updated summary: " + storySummary);
+        getChoices(passage)
+      });
+    });
+  }
 }
 
 async function openAIFetchAPI(promptMessages, numChoices, stopChars) {
