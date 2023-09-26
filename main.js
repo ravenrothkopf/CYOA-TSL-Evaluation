@@ -81,7 +81,7 @@ async function getChoices(nextPassage) {
 
 async function getNextPassageAndChoices() {
   currentText = document.getElementById('adventureText').innerHTML.trim();
-  document.getElementById('adventureText').innerHTML = "<div id=\"loading-bar-spinner\" class=\"spinner\"><div class=\"spinner-icon\"></div></div>";
+  document.getElementById('adventureText').innerHTML = "<img src=\"walk.gif\"></img>";
   let passagePrompt = [
     { role: "system", content: "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story of at most 100 words. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense." },
     { role: "assistant", content: storySummary + " " + currentText },
@@ -172,7 +172,7 @@ async function openAIFetchAPI(promptMessages, numChoices, stopChars) {
     body: JSON.stringify({
       "model": "gpt-4",
       "messages": promptMessages,
-      "max_tokens": 160,
+      "max_tokens": 250,
       "temperature": 1,
       "top_p": 1,
       "n": numChoices,

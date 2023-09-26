@@ -20,7 +20,7 @@ function getCave() {
   return inCave;
 }
 
-let genericPrompt = "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story of at most 100 words. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense."
+let genericPrompt = "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story of at most 200 words. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense and never use the first-person."
 
 //TSL functions of arity 1
 async function market(summary, choice) {
@@ -61,7 +61,7 @@ async function town(summary, choice) {
 async function updateSummary(previousSummary) {
   passages.push(previousSummary);
   let summaryPrompt = [
-    { role: "system", content: "You are writing a book and need to recall important points of the story so far. Summarize the provided passages into a list of key facts about the story so far in moderate detail, including locations the player has visited, items they have acquired, and people they have interacted with." }, //maybe ask for different kinds of options here - as mediated by TSL?
+    { role: "system", content: "You are writing a book and need to recall important points of the story so far. Summarize the provided passage from about the story so far in moderate detail, including the main character description, the locations visited, items  acquired, and interactions with other characters." }, //maybe ask for different kinds of options here - as mediated by TSL?
     { role: "user", content: passages.slice(-numPassagesToConsider).join(' ') },
   ];
   return await getAPIResponse(summaryPrompt, false);
