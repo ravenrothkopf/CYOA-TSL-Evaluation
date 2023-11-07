@@ -7,7 +7,6 @@ document.getElementById('runGame').addEventListener("click", runGame);
 let passages = []
 // global variable for the current passage of each time step
 let passage;
-let passageTarget = "toMarket";
 let currentText;
 let storySummary = ""
 let isRunning = true;
@@ -36,6 +35,7 @@ async function runGame() {
     console.log("step: " + step)
     currentText = document.getElementById('adventureText').innerHTML.trim();
 
+    // PREDICATE SPECIFIC
     if (firstRound(currentText)) {
       appendToCSVFile([runs, step, 0, 0, 0, passageTarget, currentState]);
     }
@@ -52,12 +52,13 @@ function stopGame() {
   isRunning = false;
 }
 
+// PREDICATE SPECIFIC
 // compute all predicates ahead of time
 async function getPreds() {
   let preds = await Promise.all([
-    checkInCave(storySummary),
-    checkInMarket(storySummary),
-    checkInTown(storySummary),
+    checkObstacle("cave"),
+    checkObstacle("market"),
+    checkObstacle("town"),
   ]);
   return preds;
 }
@@ -118,6 +119,8 @@ async function getNextTSLPassage() {
   else {
     // compute all predicates ahead of time for the sake of efficiency and money
     await getPreds().then(async preds => {
+      // PREDICATE SPECIFIC
+      // -----------------
       inCave = preds[0];
       inMarket = preds[1];
       inTown = preds[2];
@@ -141,19 +144,21 @@ async function getNextTSLPassage() {
 
       // TSL automaton
       updateState();
+
       console.log(passageTarget)
       if (passageTarget == "toCave") {
         console.log("TSL says go to cave")
-        passage = await cave(storySummary, choice)
+        passage = await obstacle(storySummary, choice, "cave")
       }
       else if (passageTarget == "toMarket") {
         console.log("TSL says go to market")
-        passage = await market(storySummary, choice)
+        passage = await obstacle(storySummary, choice, "market")
       }
       else if (passageTarget == "toTown") {
         console.log("TSL says go to town")
-        passage = await town(storySummary, choice)
+        passage = await obstacle(storySummary, choice, "town")
       }
+      // -----------------
 
       // update story summary and choices
       document.getElementById('adventureText').innerHTML = passage;
@@ -171,18 +176,22 @@ async function getNextTSLPassage() {
 function restart() {
   document.getElementById('adventureText').innerHTML = "Once upon a time...";
   document.getElementById('log').innerHTML = "";
-  document.getElementById('caveCheck').checked = false;
-  document.getElementById('marketCheck').checked = false;
-  document.getElementById('townCheck').checked = false;
 
   currentText = "";
   passages = [];
   storySummary = "";
   currentState = 0;
   passage = "";
-  passageTarget = "toMarket";
   isRunning = true;
   currentState = 0;
+
+  //PREDICATE SPECIFIC
+  // -----------------
+  document.getElementById('caveCheck').checked = false;
+  document.getElementById('marketCheck').checked = false;
+  document.getElementById('townCheck').checked = false;
+
+  passageTarget = "toMarket";
 
   toCave = "toCave";
   toMarket = "toMarket";
@@ -191,6 +200,7 @@ function restart() {
   inCave = undefined;
   inMarket = undefined;
   inTown = undefined;
+  // -----------------
 }
 
 async function openAIFetchAPI(promptMessages, numChoices, stopChars) {

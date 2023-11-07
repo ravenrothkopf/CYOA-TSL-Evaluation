@@ -1,10 +1,25 @@
 let currentState = 0;
+// PREDICATE SPECIFIC
+// -----------------
+let toCave = "toCave"
+let toMarket = "toMarket"
+let toTown = "toTown"
+let passageTarget = "toMarket";
+
+function getMarket() {
+  return inMarket;
+}
+
+function getTown() {
+  return inTown;
+}
+
+function getCave() {
+  return inCave;
+}
+// -----------------
 
 function updateState() {
-  let toCave = "toCave"
-  let toMarket = "toMarket"
-  let toTown = "toTown"
-
   if (currentState === 0) {
     if (!getCave() && !getMarket() && !getTown()) {
       passageTarget = passageTarget
