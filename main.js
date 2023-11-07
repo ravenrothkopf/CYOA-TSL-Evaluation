@@ -1,7 +1,7 @@
 document.getElementById('submitAPIKey').addEventListener("click", recordKey);
-document.getElementById('runGame').addEventListener("click", runGame);
 document.getElementById('restart').addEventListener("click", restart);
 document.getElementById('stopGame').addEventListener("click", stopGame);
+document.getElementById('runGame').addEventListener("click", runGame);
 
 // list of all passages for summarization
 let passages = []
@@ -10,8 +10,11 @@ let passage;
 let passageTarget = "toMarket";
 let currentText;
 let storySummary = ""
-const numPassagesToConsider = 3;
 let isRunning = true;
+let runs = 1;
+
+// log predicates for each time step for each run
+createCSVFile();
 
 // compute all predicates ahead of time
 async function getPreds() {
@@ -43,8 +46,17 @@ async function runGame() {
     }
     console.log("step: " + step)
     currentText = document.getElementById('adventureText').innerHTML.trim();
+
+    if (firstRound(currentText)) {
+      appendToCSVFile(runs, step, 0, 0, 0);
+    }
+    else {
+      const preds = await getPreds();
+      appendToCSVFile(runs, step, preds[0] ? 1 : 0, preds[1] ? 1 : 0, preds[2] ? 1 : 0);
+    }
     await makeRandomChoice(currentText);
   }
+  runs++;
 }
 
 function stopGame() {
@@ -55,7 +67,7 @@ function stopGame() {
 async function makeRandomChoice(nextPassage) {
   if (firstRound(nextPassage)) {
     console.log("first round")
-    await getNextPassage.call({ innerHTML: nextPassage });
+    await getNextTSLPassage.call({ innerHTML: nextPassage });
     return;
   }
   let choice1Prompt = [
@@ -79,10 +91,10 @@ async function makeRandomChoice(nextPassage) {
 
   const options = [choice1, choice2]; //randomly choose one of the two options
   const choice = options[Math.floor(Math.random() * 2)];
-  await getNextPassage.call({ innerHTML: choice });
+  await getNextTSLPassage.call({ innerHTML: choice });
 }
 
-async function getNextPassage() {
+async function getNextTSLPassage() {
   currentText = document.getElementById('adventureText').innerHTML.trim();
   console.log(this.innerHTML)
   let passagePrompt = [
@@ -171,6 +183,7 @@ function restart() {
   passage = "";
   passageTarget = "toMarket";
   isRunning = true;
+  currentState = 0;
 
   toCave = "toCave";
   toMarket = "toMarket";

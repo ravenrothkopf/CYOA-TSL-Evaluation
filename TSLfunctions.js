@@ -6,6 +6,7 @@ let randomPassage;
 let inCave;
 let inMarket;
 let inTown;
+const numPassagesToConsider = 3;
 
 // compute all predicates ahead of time
 function getMarket() {
