@@ -12,21 +12,10 @@ let currentText;
 let storySummary = ""
 let isRunning = true;
 let runs = 1;
+var apiKey = "";
 
 // log predicates for each time step for each run
 createCSVFile();
-
-// compute all predicates ahead of time
-async function getPreds() {
-  let preds = await Promise.all([
-    checkInCave(storySummary),
-    checkInMarket(storySummary),
-    checkInTown(storySummary),
-  ]);
-  return preds;
-}
-
-var apiKey = "";
 
 function recordKey() {
   // Get the value entered in the text input
@@ -48,11 +37,11 @@ async function runGame() {
     currentText = document.getElementById('adventureText').innerHTML.trim();
 
     if (firstRound(currentText)) {
-      appendToCSVFile(runs, step, 0, 0, 0);
+      appendToCSVFile(runs, step, 0, 0, 0, passageTarget, currentState);
     }
     else {
       const preds = await getPreds();
-      appendToCSVFile(runs, step, preds[0] ? 1 : 0, preds[1] ? 1 : 0, preds[2] ? 1 : 0);
+      appendToCSVFile(runs, step, preds[0] ? 1 : 0, preds[1] ? 1 : 0, preds[2] ? 1 : 0, passageTarget, currentState);
     }
     await makeRandomChoice(currentText);
   }
@@ -61,6 +50,16 @@ async function runGame() {
 
 function stopGame() {
   isRunning = false;
+}
+
+// compute all predicates ahead of time
+async function getPreds() {
+  let preds = await Promise.all([
+    checkInCave(storySummary),
+    checkInMarket(storySummary),
+    checkInTown(storySummary),
+  ]);
+  return preds;
 }
 
 // randomly choose one of the two generated options to continue
