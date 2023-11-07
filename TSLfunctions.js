@@ -56,8 +56,6 @@ async function town(summary, choice) {
   return await getAPIResponse(passagePrompt, false);
 }
 
-
-//this doesnt work yet
 async function updateSummary(previousSummary) {
   passages.push(previousSummary);
   let summaryPrompt = [
