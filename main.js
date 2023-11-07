@@ -37,11 +37,11 @@ async function runGame() {
     currentText = document.getElementById('adventureText').innerHTML.trim();
 
     if (firstRound(currentText)) {
-      appendToCSVFile(runs, step, 0, 0, 0, passageTarget, currentState);
+      appendToCSVFile([runs, step, 0, 0, 0, passageTarget, currentState]);
     }
     else {
       const preds = await getPreds();
-      appendToCSVFile(runs, step, preds[0] ? 1 : 0, preds[1] ? 1 : 0, preds[2] ? 1 : 0, passageTarget, currentState);
+      appendToCSVFile([runs, step, preds[0] ? 1 : 0, preds[1] ? 1 : 0, preds[2] ? 1 : 0, passageTarget, currentState]);
     }
     await makeRandomChoice(currentText);
   }

@@ -5,13 +5,13 @@ let csvData = "";
 function createCSVFile() {
   // Initialize the CSV data with a header row
   csvData = "Run,Step,InCave,InMarket,InTown,Update,CurrentState\n";
-  
   // Reset the run count
   runs = 1;
 }
 
-function appendToCSVFile(run, step, inCave, inMarket, inTown, update, currentState) {
-    csvData += `${run},${step},${inCave},${inMarket},${inTown},${update},${currentState}\n`;
+function appendToCSVFile(arr) {
+    csvData += arr.join(",");
+    csvData += "\n";
 }
 
 function generateCSV() {
