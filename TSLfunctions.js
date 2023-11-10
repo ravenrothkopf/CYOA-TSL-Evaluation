@@ -3,7 +3,7 @@ const numPassagesToConsider = 3;
 let genericPrompt = "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story of at most 200 words. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense and never use the first-person."
 
 async function obstacle(summary, choice, obstacle) {
-  console.log("getting market passage...");
+  console.log("getting " + obstacle + " passage...");
   let specificPrompt = " Compose a passage where the reader encounters a " + obstacle + " on their journey.";
   let passagePrompt = [
     { role: "system", content: genericPrompt + specificPrompt },
@@ -44,7 +44,7 @@ async function getAPIResponse(prompt, isPredicate) {
       return response;
     }
   } catch (error) {
-    console.error("Error determining town state:", error);
+    console.error("Error determining state:", error);
     return null;
   }
 }

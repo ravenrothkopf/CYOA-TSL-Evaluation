@@ -1,4 +1,3 @@
-let currentState = 0;
 // PREDICATE SPECIFIC
 // -----------------
 let toCave = "toCave"
@@ -18,6 +17,8 @@ function getCave() {
   return inCave;
 }
 // -----------------
+
+let currentState = 0;
 
 function updateState() {
   if (currentState === 0) {

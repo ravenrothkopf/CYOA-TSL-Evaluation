@@ -4,7 +4,8 @@ document.getElementById('stopGame').addEventListener("click", stopGame);
 document.getElementById('runGame').addEventListener("click", runGame);
 
 // list of all passages for summarization
-let passages = []
+let passages = [];
+let preds = [];
 // global variable for the current passage of each time step
 let passage;
 let currentText;
@@ -28,7 +29,7 @@ function firstRound(currentText) {
 // run the game for 20 steps
 async function runGame() {
   for (let step = 0; step < 20; step++) {
-    if (!isRunning || (document.getElementById('caveCheck').checked && document.getElementById('marketCheck').checked && document.getElementById('townCheck').checked)) {
+    if (!isRunning) {
       console.log("stopped game")
       break;
     }
@@ -40,7 +41,8 @@ async function runGame() {
       appendToCSVFile([runs, step, 0, 0, 0, passageTarget, currentState]);
     }
     else {
-      const preds = await getPreds();
+      // compute all predicates ahead of time for the sake of efficiency and money
+      preds = await getPreds();
       appendToCSVFile([runs, step, preds[0] ? 1 : 0, preds[1] ? 1 : 0, preds[2] ? 1 : 0, passageTarget, currentState]);
     }
     await makeRandomChoice(currentText);
@@ -117,8 +119,6 @@ async function getNextTSLPassage() {
     });
   }
   else {
-    // compute all predicates ahead of time for the sake of efficiency and money
-    await getPreds().then(async preds => {
       // PREDICATE SPECIFIC
       // -----------------
       inCave = preds[0];
@@ -169,7 +169,6 @@ async function getNextTSLPassage() {
         console.log("Generated passage: " + passage);
         console.log("Updated summary: " + storySummary);
       });
-    });
   }
 }
 
@@ -179,6 +178,7 @@ function restart() {
 
   currentText = "";
   passages = [];
+  preds = [];
   storySummary = "";
   currentState = 0;
   passage = "";
@@ -205,6 +205,7 @@ function restart() {
 
 async function openAIFetchAPI(promptMessages, numChoices, stopChars) {
   console.log("Calling GPT4")
+  console.log(promptMessages)
   const url = "https://api.openai.com/v1/chat/completions";
   const YOUR_TOKEN = apiKey //add your own openai api key
   const bearer = 'Bearer ' + YOUR_TOKEN
