@@ -12,10 +12,21 @@ let currentText;
 let storySummary = ""
 let isRunning = true;
 let runs = 1;
-var apiKey = "";
 
 // log predicates for each time step for each run
 createCSVFile();
+
+// compute all predicates ahead of time
+async function getPreds() {
+  let preds = await Promise.all([
+    checkInCave(storySummary),
+    checkInMarket(storySummary),
+    checkInTown(storySummary),
+  ]);
+  return preds;
+}
+
+var apiKey = "";
 
 function recordKey() {
   // Get the value entered in the text input
