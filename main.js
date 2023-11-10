@@ -1,7 +1,10 @@
 document.getElementById('submitAPIKey').addEventListener("click", recordKey);
 document.getElementById('restart').addEventListener("click", restart);
 document.getElementById('stopGame').addEventListener("click", stopGame);
-document.getElementById('runGame').addEventListener("click", runGame);
+document.getElementById('runGame').addEventListener("click", () => {
+  console.log("Run " + runs)
+  runGame();
+});
 
 // list of all passages for summarization
 let passages = [];
@@ -46,6 +49,7 @@ async function runGame() {
       appendToCSVFile([runs, step, preds[0] ? 1 : 0, preds[1] ? 1 : 0, preds[2] ? 1 : 0, passageTarget, currentState]);
     }
     await makeRandomChoice(currentText);
+    await new Promise(resolve => setTimeout(resolve, 10000));
   }
   runs++;
 }
