@@ -29,4 +29,3 @@ function generateCSV() {
     URL.revokeObjectURL(url);
 }
   
-
