@@ -28,7 +28,7 @@ function firstRound(currentText) {
 
 // run the game for 20 steps
 async function runGame() {
-  for (let step = 0; step < 20; step++) {
+  for (let step = 0; step < 15; step++) {
     if (!isRunning) {
       console.log("stopped game")
       break;
@@ -205,7 +205,6 @@ function restart() {
 
 async function openAIFetchAPI(promptMessages, numChoices, stopChars) {
   console.log("Calling GPT4")
-  console.log(promptMessages)
   const url = "https://api.openai.com/v1/chat/completions";
   const YOUR_TOKEN = apiKey //add your own openai api key
   const bearer = 'Bearer ' + YOUR_TOKEN
