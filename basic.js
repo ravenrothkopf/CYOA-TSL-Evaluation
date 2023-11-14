@@ -21,7 +21,6 @@ async function runBasicGame() {
     await makeRandomBasicChoice(currentText);
     await new Promise(resolve => setTimeout(resolve, 10000));
   }
-  runs++;
 }
 
 // randomly choose one of the two generated options to continue
@@ -93,7 +92,7 @@ async function getNextBasicPassage() {
     document.getElementById('adventureText').innerHTML = passage;
     console.log("next passage: " + currentText);
     document.getElementById('log').innerHTML += (this.innerHTML + "<br><br>" + passage + "<br><br>");
-    
+
     summary = await updateSummary(passage)
     storySummary = summary;
     console.log("Generated passage: " + passage);

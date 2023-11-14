@@ -188,6 +188,7 @@ function restart() {
   passage = "";
   isRunning = true;
   currentState = 0;
+  runs++;
 
   //PREDICATE SPECIFIC
   // -----------------
