@@ -1,0 +1,26 @@
+initially assume{  
+    ! getCave;
+    ! getTown;
+    ! safeThreshold;
+    ! getMarket;
+}
+
+always assume {
+    [passageTarget <- toCave] <-> X getCave;
+    [passageTarget <- toTown] -> F getTown;
+    [passageTarget <- toMarket] -> F getMarket;
+    [safeCount <- safeCount + 1] -> F safeThreshold;
+}
+
+guarantee {
+    (! (getCave)) W (getTown);
+    (! (getCave)) W (getMarket);
+    (safeThreshold && getCave) -> F getTown;
+}
+
+always guarantee {
+     (safe && getTown) <-> [safeCount <- safeCount + 1];
+     F getCave;
+     F getTown;
+     F getMarket;
+}

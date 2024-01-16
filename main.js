@@ -15,6 +15,7 @@ let currentText;
 let storySummary = ""
 let isRunning = true;
 let runs = 1;
+let choice = "";
 var apiKey = "";
 
 // log predicates for each time step for each run
@@ -41,7 +42,7 @@ async function runGame() {
 
     // PREDICATE SPECIFIC
     if (firstRound(currentText)) {
-      appendToCSVFile([runs, step, 0, 0, 0, passageTarget, currentState]);
+      appendToCSVFile([runs, step, 0, 0, 0, passageTarget, currentState, 0, 0]);
     }
     else {
       // compute all predicates ahead of time for the sake of efficiency and money
@@ -51,7 +52,6 @@ async function runGame() {
     await makeRandomChoice(currentText);
     await new Promise(resolve => setTimeout(resolve, 10000));
   }
-  runs++;
 }
 
 function stopGame() {
@@ -61,11 +61,23 @@ function stopGame() {
 // PREDICATE SPECIFIC
 // compute all predicates ahead of time
 async function getPreds() {
-  let preds = await Promise.all([
-    checkObstacle("cave"),
-    checkObstacle("market"),
-    checkObstacle("town"),
-  ]);
+  let preds = [];
+  if (inCave){
+    preds.push(true);
+    preds = preds.concat(await Promise.all([
+      checkObstacle("market"),
+      checkObstacle("town"),
+      checkObstacle("forest"),
+    ]));
+  }
+  else {
+    preds = await Promise.all([
+      checkObstacle("cave"),
+      checkObstacle("market"),
+      checkObstacle("town"),
+      checkObstacke("forest"),
+    ]);
+  }
   return preds;
 }
 
@@ -95,6 +107,9 @@ async function makeRandomChoice(nextPassage) {
     choice2 = userChoice[0].message.content + ".";
   });
 
+  console.log("choice1: " + choice1);
+  console.log("choice2: " + choice2);
+
   const options = [choice1, choice2]; //randomly choose one of the two options
   const choice = options[Math.floor(Math.random() * 2)];
   await getNextTSLPassage.call({ innerHTML: choice });
@@ -111,7 +126,7 @@ async function getNextTSLPassage() {
 
   // dont enter the automaton until the first round is over
   if (firstRound(currentText)) {
-    passagePrompt[0].content += " Compose the introductory passage of the story which describes the character and the setting. The initial setting can not be in a market, town, or cave."
+    passagePrompt[0].content += " Compose the introductory passage of the story which describes the character and the setting. The initial setting can not be in a market, town or cave."
     await openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
       passage = newText[0].message.content;
       document.getElementById('adventureText').innerHTML = passage;
@@ -128,10 +143,15 @@ async function getNextTSLPassage() {
       inCave = preds[0];
       inMarket = preds[1];
       inTown = preds[2];
+      inForest = preds[3];
 
       console.log("inCave: " + inCave);
       console.log("inMarket: " + inMarket);
       console.log("inTown: " + inTown);
+      console.log("inForest: " + inForest);
+
+      choice = this.innerHTML.replace("You", "I");
+      safeChoice = await evalChoice(storySummary, choice);
 
       // keep track if market and town were visited before cave
       if (inCave) {
@@ -143,18 +163,29 @@ async function getNextTSLPassage() {
       if (inTown) {
         document.getElementById("townCheck").checked = true;
       }
-
-      let choice = this.innerHTML.replace("You", "I")
+      if (inForest) {
+        document.getElementById("forestCheck").checked = true;
+      }
 
       // TSL automaton
-      updateState();
+      updateChoiceState();
+
+      console.log("safe: " + safeChoice);
+      console.log("safe count: " + safeCount);
+      if (!firstRound(currentText)) {
+        updateCSVFile([safeChoice ? 1 : 0, safeCount]);
+      }
 
       console.log(passageTarget)
-      if (passageTarget == "toCave") {
-        console.log("TSL says go to cave")
-        passage = await obstacle(storySummary, choice, "cave")
+      while (passageTarget === "toCave" && !inCave) {
+        passage = await obstacle(storySummary, choice, "cave");
+        inCave = await checkObstacle("cave");
+        console.log("inCave: " + inCave);
       }
-      else if (passageTarget == "toMarket") {
+      if (passageTarget == "toCave") {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+      }
+      if (passageTarget == "toMarket") {
         console.log("TSL says go to market")
         passage = await obstacle(storySummary, choice, "market")
       }
@@ -162,6 +193,11 @@ async function getNextTSLPassage() {
         console.log("TSL says go to town")
         passage = await obstacle(storySummary, choice, "town")
       }
+      else if (passageTarget == "toForest") {
+        console.log("TSL says go to forest")
+        passage = await obstacle(storySummary, choice, "forest")
+      }
+
       // -----------------
 
       // update story summary and choices
@@ -188,6 +224,7 @@ function restart() {
   passage = "";
   isRunning = true;
   currentState = 0;
+  safeCount = 0;
   runs++;
 
   //PREDICATE SPECIFIC
@@ -205,6 +242,7 @@ function restart() {
   inCave = undefined;
   inMarket = undefined;
   inTown = undefined;
+  safeChoice = undefined;
   // -----------------
 }
 

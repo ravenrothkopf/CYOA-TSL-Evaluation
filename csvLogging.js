@@ -4,14 +4,22 @@ let csvData = "";
 
 function createCSVFile() {
   // Initialize the CSV data with a header row
-  csvData = "Run,Step,InCave,InMarket,InTown,Update,CurrentState\n";
+  csvData = "Run,Step,InCave,InTown,Update,CurrentState,SafeChoice,SafeCount\n";
   // Reset the run count
   runs = 1;
 }
 
 function appendToCSVFile(arr) {
-    csvData += arr.join(",");
-    csvData += "\n";
+  if (firstRound(currentText)){
+    csvData += arr.join(",") + "\n";
+  }
+  else {
+    csvData += arr.join(",") + ",";
+  }
+}
+
+function updateCSVFile(arr) {
+  csvData += arr.join(",") + "\n";
 }
 
 function generateCSV() {
