@@ -31,12 +31,12 @@ async function runBasicGame() {
     console.log("inForest: " + inForest);
 
     choice = choice.replace("You", "I");
-    // safeChoice = await evalChoice(storySummary, choice);
+    safeChoice = await evalChoice(storySummary, choice);
 
-    // extractSafeCount(passage);
+    extractSafeCount(passage);
 
-    // console.log("safe: " + safeChoice);
-    // console.log("safe count: " + safeCount);
+    console.log("safe: " + safeChoice);
+    console.log("safe count: " + safeCount);
 
     if (inCave) {
       document.getElementById("caveCheck").checked = true;
@@ -90,19 +90,19 @@ async function getNextBasicPassage() {
     currentText = document.getElementById('adventureText').innerHTML.trim();
     console.log(this.innerHTML);
 
-    // let verdict;
-    // if (safeChoice == false) {
-    //   verdict = "unsafe";
-    // }
-    // else if (safeChoice == true) {
-    //   verdict = "safe";
-    // }
-    // else {
-    //   verdict = "neutral";
-    // }
+    let verdict;
+    if (safeChoice == false) {
+      verdict = "unsafe";
+    }
+    else if (safeChoice == true) {
+      verdict = "safe";
+    }
+    else {
+      verdict = "neutral";
+    }
   
     let passagePrompt = [
-      { role: "system", content: "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story of at most 100 words. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense. The player cannot visit a cave until they visit a town. The player cannot visit a cave until they visit a market. The player will eventually visit a town. The player will eventually visit a market. The player will eventually visit a cave. After the player visits a town and a market, they must visit a cave. The player may visit these locations in a later passage. If this is the first passage of the story, you should write an introductory passage of the story starting which describes the character and the setting. The initial setting must be a forest, not a market, town or cave." ,},
+      { role: "system", content: "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story of at most 100 words. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense. The player cannot visit a cave until they visit a town. The player cannot visit a cave until they visit a market. The player will eventually visit a town. The player will eventually visit a market. The player will eventually visit a cave. After the player visits a town and a market, they must visit a cave. The player may visit these locations in a later passage. If the player is in a town and makes a safe choice, the `safeCount` count variable should be incremented by 1. The current amount of safe choices made is: " + safeCount + ". The the player just made a " + verdict.toString() + " choice. Once the player has made 3 safe choices and they are in a cave, they should go to a town. Make sure to output the current amount of safe choices made in the form: `safeCount=x` at the beginning of each story passage and the include the story, but remember that this variable can only be updated if the player is in a town, which right now, is " + inTown.toString() + ". If this is the first passage of the story, you should write an introductory passage of the story starting which describes the character and the setting. The initial setting must be a forest, not a market, town or cave." ,},
       { role: "assistant", content: storySummary + " " + currentText,},
       { role: "user", content: this.innerHTML.replace("You", "I"),},
     ];
