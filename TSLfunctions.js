@@ -5,6 +5,9 @@ let genericPrompt = "You are writing a choose your own adventure book. Compose a
 async function obstacle(summary, choice, obstacle) {
   console.log("getting " + obstacle + " passage...");
   let specificPrompt = " Compose a passage where the reader encounters a " + obstacle + " on their journey.";
+  if (obstacle === "forest"){
+    specificPrompt += "Compose the introductory passage of the story which describes the character and the setting."
+  }
   let passagePrompt = [
     { role: "system", content: genericPrompt + specificPrompt },
     { role: "assistant", content: summary + " " + currentText },

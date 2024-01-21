@@ -5,7 +5,6 @@ initially assume{
 }
 
 always assume {
-    ! (getCave && getMarket && getTown);
     [passageTarget <- toCave] <-> X getCave;
     [passageTarget <- toMarket] -> F getMarket;
     [passageTarget <- toTown] -> F getTown;

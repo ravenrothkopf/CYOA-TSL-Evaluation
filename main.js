@@ -41,17 +41,48 @@ async function runGame() {
     currentText = document.getElementById('adventureText').innerHTML.trim();
 
     // PREDICATE SPECIFIC
-    if (firstRound(currentText)) {
-      appendToCSVFile([runs, step, 0, 0, 0, passageTarget, currentState, 0, 0]);
-    }
-    else {
-      // compute all predicates ahead of time for the sake of efficiency and money
-      preds = await getPreds();
-      appendToCSVFile([runs, step, preds[0] ? 1 : 0, preds[1] ? 1 : 0, preds[2] ? 1 : 0, passageTarget, currentState]);
-    }
-    await makeRandomChoice(currentText);
+    updateForest();
+    // if (firstRound(currentText)) {
+    //   appendToCSVFile([runs, step, 0, 0, 0, 0, passageTarget, currentState, 0, 0]);
+    // }
+    // compute all predicates ahead of time for the sake of efficiency and money
+    choice = await makeRandomChoice(currentText);
+    await getNextTSLPassage.call({ innerHTML: choice });
+    preds = await getPreds();
+    inCave = preds[0];
+      inMarket = preds[1];
+      inTown = preds[2];
+      inForest = preds[3];
+
+      console.log("inCave: " + inCave);
+      console.log("inMarket: " + inMarket);
+      console.log("inTown: " + inTown);
+      console.log("inForest: " + inForest);
+
+      choice = choice.replace("You", "I");
+      // safeChoice = await evalChoice(storySummary, choice);
+
+      // console.log("safe: " + safeChoice);
+      // console.log("safe count: " + safeCount);
+
+      // keep track if market and town were visited before cave
+      if (inCave) {
+        document.getElementById("caveCheck").checked = true;
+      }
+      if (inMarket) {
+        document.getElementById("marketCheck").checked = true;
+      }
+      if (inTown) {
+        document.getElementById("townCheck").checked = true;
+      }
+      if (inForest) {
+        document.getElementById("forestCheck").checked = true;
+      }
+      updateCSVFile([runs, step, preds[0] ? 1 : 0, preds[1] ? 1 : 0, preds[2] ? 1 : 0, preds[3] ? 1 : 0, passageTarget, currentState, safeChoice ? 1 : 0, safeCount]);
+
     await new Promise(resolve => setTimeout(resolve, 10000));
   }
+  console.log("finished game");
 }
 
 function stopGame() {
@@ -75,7 +106,7 @@ async function getPreds() {
       checkObstacle("cave"),
       checkObstacle("market"),
       checkObstacle("town"),
-      checkObstacke("forest"),
+      checkObstacle("forest"),
     ]);
   }
   return preds;
@@ -83,10 +114,10 @@ async function getPreds() {
 
 // randomly choose one of the two generated options to continue
 async function makeRandomChoice(nextPassage) {
-  if (firstRound(nextPassage)) {
+  if (nextPassage.includes("Once upon a time") || nextPassage.includes("once upon a time")) {
     console.log("first round")
-    await getNextTSLPassage.call({ innerHTML: nextPassage });
-    return;
+    // await getNextTSLPassage.call({ innerHTML: nextPassage });
+    return "";
   }
   let choice1Prompt = [
     { role: "system", content: "You are writing a choose your own adventure book. Given the passage, give a single next concrete action for the player, such as walking to the left. Refer to the reader as `You` and use the present active tense. Do not prefix options with numbers. Do not use the word `can`. Do not use the word `or`" }, //maybe ask for different kinds of options here - as mediated by TSL?
@@ -111,70 +142,16 @@ async function makeRandomChoice(nextPassage) {
   console.log("choice2: " + choice2);
 
   const options = [choice1, choice2]; //randomly choose one of the two options
-  const choice = options[Math.floor(Math.random() * 2)];
-  await getNextTSLPassage.call({ innerHTML: choice });
+  return options[Math.floor(Math.random() * 2)];
+  // await getNextTSLPassage.call({ innerHTML: choice });
+  // " Compose the introductory passage of the story which describes the character and the setting. The initial setting can not be in a market, town or cave."
 }
 
 async function getNextTSLPassage() {
   currentText = document.getElementById('adventureText').innerHTML.trim();
   console.log(this.innerHTML)
-  let passagePrompt = [
-    { role: "system", content: "You are writing a choose your own adventure book. Compose a one paragraph-long passage of the story of at most 100 words. The paragraph should end just before a critical choice. Do not specify choices. Write in the present tense." },
-    { role: "assistant", content: storySummary + " " + currentText },
-    { role: "user", content: this.innerHTML.replace("You", "I") },
-  ];
-
-  // dont enter the automaton until the first round is over
-  if (firstRound(currentText)) {
-    passagePrompt[0].content += " Compose the introductory passage of the story which describes the character and the setting. The initial setting can not be in a market, town or cave."
-    await openAIFetchAPI(passagePrompt, 1, "\n").then(newText => {
-      passage = newText[0].message.content;
-      document.getElementById('adventureText').innerHTML = passage;
-      console.log("next passage: " + currentText)
-      document.getElementById('log').innerHTML += (this.innerHTML + "<br><br>" + passage + "<br><br>");
-      updateSummary(passage).then(summary => {
-        storySummary = summary;
-      });
-    });
-  }
-  else {
       // PREDICATE SPECIFIC
       // -----------------
-      inCave = preds[0];
-      inMarket = preds[1];
-      inTown = preds[2];
-      inForest = preds[3];
-
-      console.log("inCave: " + inCave);
-      console.log("inMarket: " + inMarket);
-      console.log("inTown: " + inTown);
-      console.log("inForest: " + inForest);
-
-      choice = this.innerHTML.replace("You", "I");
-      safeChoice = await evalChoice(storySummary, choice);
-
-      // keep track if market and town were visited before cave
-      if (inCave) {
-        document.getElementById("caveCheck").checked = true;
-      }
-      if (inMarket) {
-        document.getElementById("marketCheck").checked = true;
-      }
-      if (inTown) {
-        document.getElementById("townCheck").checked = true;
-      }
-      if (inForest) {
-        document.getElementById("forestCheck").checked = true;
-      }
-
-      // TSL automaton
-      updateChoiceState();
-
-      console.log("safe: " + safeChoice);
-      console.log("safe count: " + safeCount);
-      if (!firstRound(currentText)) {
-        updateCSVFile([safeChoice ? 1 : 0, safeCount]);
-      }
 
       console.log(passageTarget)
       while (passageTarget === "toCave" && !inCave) {
@@ -210,7 +187,6 @@ async function getNextTSLPassage() {
         console.log("Updated summary: " + storySummary);
       });
   }
-}
 
 function restart() {
   document.getElementById('adventureText').innerHTML = "Once upon a time...";
@@ -232,17 +208,19 @@ function restart() {
   document.getElementById('caveCheck').checked = false;
   document.getElementById('marketCheck').checked = false;
   document.getElementById('townCheck').checked = false;
+  document.getElementById('forestCheck').checked = false;
 
-  passageTarget = "toMarket";
+  passageTarget = "";
 
   toCave = "toCave";
   toMarket = "toMarket";
   toTown = "toTown";
+  toForest = "toForest";
 
-  inCave = undefined;
-  inMarket = undefined;
-  inTown = undefined;
-  safeChoice = undefined;
+  inCave = false;
+  inMarket = false;
+  inTown = false;
+  safeChoice = false;
   // -----------------
 }
 

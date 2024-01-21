@@ -1185,5 +1185,4 @@ function updateChoiceState() {
       currentState = 15
     }
   }
-  
 }

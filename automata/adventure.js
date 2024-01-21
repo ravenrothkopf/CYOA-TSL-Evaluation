@@ -3,7 +3,10 @@
 let toCave = "toCave"
 let toMarket = "toMarket"
 let toTown = "toTown"
-let passageTarget = "toMarket";
+let inTown = false;
+let inMarket = false;
+let inCave = false;
+let passageTarget = "";
 
 function getMarket() {
   return inMarket;
@@ -16,6 +19,7 @@ function getTown() {
 function getCave() {
   return inCave;
 }
+
 // -----------------
 
 let currentState = 0;
