@@ -53,8 +53,6 @@ async function getChoices(nextPassage) {
     choice2Btn.textContent = userChoice[0] + ".";
   });
 }
-
-// Core loop: run when either green button is clicked
 async function getNextPassage() {
   console.log("➡️ getNextPassage() fired");
   try {
@@ -62,7 +60,8 @@ async function getNextPassage() {
     console.log("   userChoice =", userChoice);
 
     const advEl = document.getElementById('adventureText');
-    advEl.innerHTML = "<em>Loading next passage…</em>";
+    // show the GIF instead of text
+    advEl.innerHTML = "<img src='walk.gif' alt='Loading next passage…' />";
 
     // Build base prompt
     const basePrompt = [
@@ -107,6 +106,7 @@ async function getNextPassage() {
       "Sorry, something went wrong: " + err.message;
   }
 }
+
 
 // Bring everything back to the start
 function restart() {

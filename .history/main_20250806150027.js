@@ -54,7 +54,6 @@ async function getChoices(nextPassage) {
   });
 }
 
-// Core loop: run when either green button is clicked
 async function getNextPassage() {
   console.log("➡️ getNextPassage() fired");
   try {
@@ -85,7 +84,7 @@ async function getNextPassage() {
       [newPara] = await openAIFetchAPI([
         { role: "system",    content: genericPrompt },
         { role: "assistant", content: storySummary + " " + passage },
-        { role: "user",      content: `I choose to go to the ${passageTarget}.` }
+        { role: "user",      content: I choose to go to the ${passageTarget}. }
       ], 1, "\n");
     }
 
@@ -93,8 +92,8 @@ async function getNextPassage() {
     passage = newPara;
     advEl.textContent = passage;
     document.getElementById('log').innerHTML +=
-      `<li><strong>You:</strong> ${userChoice}</li>
-       <li><strong>Story:</strong> ${passage}</li>`;
+      <li><strong>You:</strong> ${userChoice}</li>
+       <li><strong>Story:</strong> ${passage}</li>;
 
     // Update summary & regenerate choices
     storySummary = await updateSummary(passage);
@@ -107,6 +106,7 @@ async function getNextPassage() {
       "Sorry, something went wrong: " + err.message;
   }
 }
+
 
 // Bring everything back to the start
 function restart() {

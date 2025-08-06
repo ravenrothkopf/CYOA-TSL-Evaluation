@@ -34,14 +34,18 @@ async function updateSummary(previousSummary) {
 
 async function getAPIResponse(prompt, isPredicate) {
   try {
-    let [text] = await openAIFetchAPI(prompt, 1, "\n");
+    let [response] = await openAIFetchAPI(prompt, 1, "\n");
+
     if (isPredicate) {
-      console.log("predicate raw:", text);
-      return /^(1|true)/i.test(text);
+      console.log("response: ", response)
+      let pred = (response.includes("1") || response.includes("true") || response.includes("True"));
+      return pred;
     }
-    return text;
-  } catch (err) {
-    console.error("LLM call failed:", err);
+    else {
+      return response;
+    }
+  } catch (error) {
+    console.error("Error determining state:", error);
     return null;
   }
 }
