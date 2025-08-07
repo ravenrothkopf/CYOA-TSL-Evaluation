@@ -54,7 +54,6 @@ async function getChoices(nextPassage) {
   });
 }
 
-// Core loop: run when either green button is clicked
 async function getNextPassage() {
   console.log("➡️ getNextPassage() fired");
   try {
@@ -62,7 +61,7 @@ async function getNextPassage() {
     console.log("   userChoice =", userChoice);
 
     const advEl = document.getElementById('adventureText');
-    advEl.innerHTML = "<em>Loading next passage…</em>";
+    advEl.innerHTML = "<img src='walk.gif' alt='Loading next passage…' />";;
 
     // Build base prompt
     const basePrompt = [

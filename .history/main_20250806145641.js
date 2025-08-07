@@ -54,7 +54,6 @@ async function getChoices(nextPassage) {
   });
 }
 
-// Core loop: run when either green button is clicked
 async function getNextPassage() {
   console.log("➡️ getNextPassage() fired");
   try {

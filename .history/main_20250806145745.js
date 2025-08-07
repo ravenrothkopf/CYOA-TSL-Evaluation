@@ -54,59 +54,6 @@ async function getChoices(nextPassage) {
   });
 }
 
-// Core loop: run when either green button is clicked
-async function getNextPassage() {
-  console.log("➡️ getNextPassage() fired");
-  try {
-    let userChoice = this.textContent.trim();
-    console.log("   userChoice =", userChoice);
-
-    const advEl = document.getElementById('adventureText');
-    advEl.innerHTML = "<em>Loading next passage…</em>";
-
-    // Build base prompt
-    const basePrompt = [
-      { role: "system",    content: "You are writing a CYOA one-paragraph scene. Stop right before the next choice." },
-      { role: "assistant", content: storySummary + " " + (passage || "") },
-      { role: "user",      content: userChoice }
-    ];
-
-    // First intro vs. subsequent
-    let newPara;
-    if (firstRound(document.getElementById('adventureText').textContent.trim())) {
-      basePrompt[0].content += " Compose the introductory scene (not in a cave/market/town).";
-      [newPara] = await openAIFetchAPI(basePrompt, 1, "\n");
-    } else {
-      // predicate checks & FSM
-      const [c, m, t] = await getPreds();
-      inCave   = c; inMarket = m; inTown = t;
-      updateState();  // sets passageTarget
-
-      [newPara] = await openAIFetchAPI([
-        { role: "system",    content: genericPrompt },
-        { role: "assistant", content: storySummary + " " + passage },
-        { role: "user",      content: `I choose to go to the ${passageTarget}.` }
-      ], 1, "\n");
-    }
-
-    // Display result
-    passage = newPara;
-    advEl.textContent = passage;
-    document.getElementById('log').innerHTML +=
-      `<li><strong>You:</strong> ${userChoice}</li>
-       <li><strong>Story:</strong> ${passage}</li>`;
-
-    // Update summary & regenerate choices
-    storySummary = await updateSummary(passage);
-    await getChoices(passage);
-    console.log("   new choices rendered.");
-
-  } catch (err) {
-    console.error("❌ Error in getNextPassage:", err);
-    document.getElementById('adventureText').textContent =
-      "Sorry, something went wrong: " + err.message;
-  }
-}
 
 // Bring everything back to the start
 function restart() {
