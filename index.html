@@ -3,67 +3,89 @@
 
 <head>
   <meta charset="utf‐8">
-  <title> Choose your own TSL adventure</title>
+  <title>Choose Your Own TSL Adventure</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.tailwindcss.com"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 </head>
 
-<body>
-  <div class="container mx-auto p-12">
-    <h1 class="text-3xl font-bold text-center mb-12">Choose your own adventure with TSL</h1>
-    <div class="flex mb-6">
-      <div class="w-1/2 pr-4">
-        <label for="input_APIKey" class="block text-sm font-medium text-gray-700">Enter OpenAI API Key:</label>
-        <div class="flex">
-          <input type="text" id="input_APIKey" class="block w-full p-2 border border-gray-300 rounded-md mb-2">
-          <button id="submitAPIKey" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md ml-2" style="margin-bottom: 0.375rem;">Submit</button>
-        </div>
-      </div>
-      <div class="w-1/2 pl-4">
-        <label for="myDropdown" class="block text-sm font-medium text-gray-700">Select a value:</label>
-        <div class="flex">
-          <select id="myDropdown" class="block w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300">
-            <option value="gpt-4-32k">ChatGPT 4.0 (32K context)</option>
-            <option value="gpt-4o-mini">GPT-4o Mini (multimodal)</option>
+<body class="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 min-h-screen">
+  <div class="container mx-auto p-8 max-w-7xl">
+    <h1 class="text-5xl font-bold text-center mb-8 text-amber-900" style="font-family: 'Cinzel', serif;">Choose Your Own Adventure</h1>
+    <p class="text-center text-amber-700 mb-8" style="font-family: 'Crimson Text', serif;">Powered by TSL State Machines</p>
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 mb-6 border border-amber-200">
+      <h2 class="text-xl font-semibold mb-4 text-amber-900" style="font-family: 'Cinzel', serif;">Configuration</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label for="providerSelect" class="block text-sm font-medium text-amber-800 mb-1">Provider:</label>
+          <select id="providerSelect" class="block w-full p-2.5 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/90">
+            <option value="openrouter">OpenRouter</option>
+            <option value="openai">OpenAI Direct</option>
           </select>
-          <button id="submitButton" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-md ml-2">Submit</button>
+        </div>
+        <div>
+          <label for="input_APIKey" class="block text-sm font-medium text-amber-800 mb-1">API Key:</label>
+          <input type="password" id="input_APIKey" placeholder="Enter your API key..." class="block w-full p-2.5 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/90">
+        </div>
+        <div>
+          <label for="modelSelect" class="block text-sm font-medium text-amber-800 mb-1">Model:</label>
+          <select id="modelSelect" class="block w-full p-2.5 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/90">
+            <option value="">Select a model...</option>
+          </select>
         </div>
       </div>
+      <button id="submitAPIKey" class="mt-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white py-2 px-6 rounded-lg font-medium transition-all transform hover:scale-105 shadow-md">Start Adventure</button>
     </div>
-    <div class="p-4">
-      <input type="checkbox" id="townCheck" class="mr-2"> <label for="townCheck">visited town</label>
-      <input type="checkbox" id="marketCheck" class="mr-2"> <label for="marketCheck">visited market</label>
-      <input type="checkbox" id="caveCheck" class="mr-2"> <label for="caveCheck">visited cave</label>
+    <div class="bg-white/60 backdrop-blur-sm rounded-lg p-4 mb-6 border border-amber-200">
+      <div class="flex items-center justify-center space-x-6 mb-2">
+        <div class="flex items-center">
+          <input type="checkbox" id="townCheck" class="mr-2 h-4 w-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500">
+          <label for="townCheck" class="text-amber-800 font-medium">🏘️ Town Visited</label>
+        </div>
+        <div class="flex items-center">
+          <input type="checkbox" id="marketCheck" class="mr-2 h-4 w-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500">
+          <label for="marketCheck" class="text-amber-800 font-medium">🏪 Market Visited</label>
+        </div>
+        <div class="flex items-center">
+          <input type="checkbox" id="caveCheck" class="mr-2 h-4 w-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500">
+          <label for="caveCheck" class="text-amber-800 font-medium">⛰️ Cave Visited</label>
+        </div>
+      </div>
+      <div class="text-center text-sm text-amber-700">
+        <span id="tslStatus">TSL Target: <span class="font-semibold">Starting...</span></span>
+      </div>
     </div>
   
-    <div class="flex mb-6">
-      <div class="w-1/2 pr-4">
-        <!-- Choices div -->
-        <div class="p-4">
-          <p id="adventureText" class=" mt-4 block text-sm font-medium text-gray-700">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-amber-200">
+        <h3 class="text-2xl font-semibold mb-4 text-amber-900" style="font-family: 'Cinzel', serif;">Current Scene</h3>
+        <div class="min-h-[200px] mb-6">
+          <p id="adventureText" class="text-lg leading-relaxed text-gray-800" style="font-family: 'Crimson Text', serif;">
             Once upon a time...
           </p>
-          <button id="choice1" class="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded">Start the adventure!</button>
-          <br>
-          <br>
-          <button id="choice2" class="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded"></button>
+        </div>
+        <div class="space-y-3">
+          <button id="choice1" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 shadow-md text-left">Start the adventure!</button>
+          <button id="choice2" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 shadow-md text-left hidden"></button>
         </div>
       </div>
-      <div class="w-1/2 pl-4">
-        <!-- Story log div -->
-        <p class="mt-4 block text-sm font-medium text-gray-700">Story Log:</p>
-        <div class="max-h-96 overflow-y-scroll border border-gray-300 p-4">
-          <ul id="log" class="list-disc list-inside"></ul>
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-amber-200">
+        <h3 class="text-2xl font-semibold mb-4 text-amber-900" style="font-family: 'Cinzel', serif;">Story Chronicle</h3>
+        <div class="max-h-96 overflow-y-auto border border-amber-200 rounded-lg p-4 bg-white/50" style="font-family: 'Crimson Text', serif;">
+          <ul id="log" class="space-y-3"></ul>
         </div>
       </div>
     </div>
-    <button id="restart" class="bg-red-500 hover:bg-red-700  text-white px-4 py-2 rounded">Restart Story</button>
+    <div class="flex justify-center">
+      <button id="restart" class="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-8 py-3 rounded-lg font-medium transition-all transform hover:scale-105 shadow-lg">🔄 Restart Adventure</button>
+    </div>
   </div>
 </body>
 
-<script src="TSLfunctions.js"> </script>
-<script src="automata.js"> </script>
-<script src="main.js"> </script>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="TSLfunctions.js"></script>
+<script src="automata.js"></script>
+<script src="main.js"></script>
 
 </html>

@@ -24,6 +24,8 @@ function updateState() {
   let toCave = "toCave"
   let toMarket = "toMarket"
   let toTown = "toTown"
+  
+  console.log(`[TSL] Entering updateState: State=${currentState}, Cave=${getCave()}, Market=${getMarket()}, Town=${getTown()}`);
 
   if (currentState === 0) {
     if (!getCave() && !getMarket() && !getTown()) {
