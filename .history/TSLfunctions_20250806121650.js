@@ -10,27 +10,17 @@ async function obstacle(summary, choice, obstacle) {
     { role: "assistant", content: summary + " " + passage },
     { role: "user", content: choice },
   ];
-  if (obstacle === "cave") {
-    passagePrompt[0].content += " The player must immediately visit a cave even if it throws off the current story, this is a strict requirement."
-  }
   return await getAPIResponse(passagePrompt, false);
 }
 
 //TSL predicates
 async function checkObstacle(obstacle) {
   console.log("checking if in " + obstacle + "...");
-  if (!passage || passage.trim() === "") {
-    console.log("No passage to check");
-    return false;
-  }
-  
   let passagePrompt = [
-    { role: "system", content: `Read this passage. Is the character currently INSIDE or physically AT a ${obstacle}? Look for phrases like "in the ${obstacle}", "inside the ${obstacle}", "at the ${obstacle}", "entered the ${obstacle}", "within the ${obstacle}". Answer '1' ONLY if they are physically there right now. Answer '0' if they are traveling to it, near it, or it's just mentioned. Your response must end with either '1' or '0'.` },
+    { role: "system", content: "Read this passage in an adventure story. Is the main character actively in a " + obstacle + "? If yes, end with a '1'. If no, end with a '0'. Please also explain your reasoning for your answer." },
     { role: "user", content: passage },
   ];
-  const result = await getAPIResponse(passagePrompt, true);
-  console.log(`[Predicate] ${obstacle}: ${result}`);
-  return result;
+  return await getAPIResponse(passagePrompt, true)
 }
 
 async function updateSummary(previousSummary) {
@@ -44,14 +34,18 @@ async function updateSummary(previousSummary) {
 
 async function getAPIResponse(prompt, isPredicate) {
   try {
-    let [text] = await apiClient.makeRequest(prompt, { stopSequences: ["\n"] });
+    let newText = await openAIFetchAPI(prompt, 1, "\n");
+    let response = newText[0].message.content;
     if (isPredicate) {
-      console.log("predicate raw:", text);
-      return text.includes('1') || /true/i.test(text);
+      console.log("response: ", response)
+      let pred = (response.includes("1") || response.includes("true") || response.includes("True"));
+      return pred;
     }
-    return text;
-  } catch (err) {
-    console.error("LLM call failed:", err);
+    else {
+      return response;
+    }
+  } catch (error) {
+    console.error("Error determining state:", error);
     return null;
   }
 }

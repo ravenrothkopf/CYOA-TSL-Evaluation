@@ -3,10 +3,7 @@
 let toCave = "toCave"
 let toMarket = "toMarket"
 let toTown = "toTown"
-let inTown = false;
-let inMarket = false;
-let inCave = false;
-let passageTarget = "";
+let passageTarget = "toMarket";
 
 function getMarket() {
   return inMarket;
@@ -19,12 +16,17 @@ function getTown() {
 function getCave() {
   return inCave;
 }
-
 // -----------------
 
 let currentState = 0;
 
 function updateState() {
+  let toCave = "toCave"
+  let toMarket = "toMarket"
+  let toTown = "toTown"
+  
+  console.log(`[TSL] Entering updateState: State=${currentState}, Cave=${getCave()}, Market=${getMarket()}, Town=${getTown()}`);
+
   if (currentState === 0) {
     if (!getCave() && !getMarket() && !getTown()) {
       passageTarget = passageTarget
